@@ -6,6 +6,14 @@
 
 ## Features
 ### Back end:
+> Part 0: Create Clean Architecture for Asp.net
+- Setting up the project structure
+- First, create a new ASP.NET Core project and organize it into the following folders:
+    + Domain: Contains the domain entities and interfaces.
+    + Application: Houses the application services, DTOs, and interfaces.
+    + Infrastructure: Contains the implementations of the interfaces defined in the Domain layer.
+    + Presentation: Consists of the controllers, views, and view models. 
+
 > Part 1: Create Database schema for blog management Code first
 
 >  Part 2: Create API Authentication and Authorization and Roles
