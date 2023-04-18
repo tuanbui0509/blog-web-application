@@ -1,4 +1,4 @@
-namespace blog_web_application;
+namespace BlogWeb;
 
 public class WeatherForecast
 {
