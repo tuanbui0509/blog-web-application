@@ -1,4 +1,5 @@
 using BlogWeb.Application.Entities;
+using BlogWeb.Application.Entities.Authentication;
 using Microsoft.EntityFrameworkCore;
 
 namespace BlogWeb.Infrastructure.Persistence
@@ -17,11 +18,21 @@ namespace BlogWeb.Infrastructure.Persistence
         public DbSet<PostTags> PostTags { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<PostMeta> PostMetas { get; set; }
+        public DbSet<User> Users { get; set; }
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            //User
+            modelBuilder.Entity<User>(e =>
+            {
+                e.ToTable("Users");
+                e.HasKey(p => p.Id);
+                e.Property(e => e.Id)
+                        .ValueGeneratedOnAdd();
+            });
+
             // Category
             modelBuilder.Entity<Category>(p =>
             {

@@ -2,9 +2,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BlogWeb.Application\BlogWeb.Application.csproj" />
+    <ProjectReference Include="..\BlogWeb.Common\BlogWeb.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <!-- <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" /> -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.5">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>

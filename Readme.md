@@ -15,10 +15,25 @@
     + Presentation: Consists of the controllers, views, and view models. 
 
 > Part 1: Create Database schema for blog management Code first
+- Create entities for blog project use Confluent API
+- ```sh
+    ## Remove all applied migrations
+    dotnet ef database update 0 --context BlogContext 
 
+    ## Remove migration files from file system
+    dotnet ef migrations remove --context BlogContext 
+
+    ## Add new migration
+    dotnet ef migrations add InitialCreate --context BlogContext
+
+    ## Apply new migration to database
+    dotnet ef database update --context BlogContext
+    ```
+- Seed Data
+- Auto mapping
 >  Part 2: Create API Authentication and Authorization and Roles
 
-> Part 3: Apply design pattern **unit of work** for web
+> Part 3: Apply design pattern **Unit Of Work**, **Mediator** for web
 
 > Part 4: Apply Unit Test NUnit for web
 
