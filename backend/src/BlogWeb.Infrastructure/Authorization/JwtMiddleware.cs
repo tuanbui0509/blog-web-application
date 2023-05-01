@@ -8,12 +8,10 @@ namespace BlogWeb.Infrastructure.Authorization
     public class JwtMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly AppSettings _appSettings;
 
-        public JwtMiddleware(RequestDelegate next, IOptions<AppSettings> appSettings)
+        public JwtMiddleware(RequestDelegate next)
         {
             _next = next;
-            _appSettings = appSettings.Value;
         }
 
         public async Task Invoke(HttpContext context, IUserService userService, IJwtUtils jwtUtils)
@@ -23,7 +21,7 @@ namespace BlogWeb.Infrastructure.Authorization
             if (userId != null)
             {
                 // attach user to context on successful jwt validation
-                context.Items["User"] = userService.GetById(userId.Value);
+                // context.Items["User"] = userService.GetById(userId.Value);
             }
 
             await _next(context);

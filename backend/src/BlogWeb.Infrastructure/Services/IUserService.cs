@@ -1,12 +1,10 @@
-using BlogWeb.Application.Entities.Authentication;
 using BlogWeb.Application.Models;
+using BlogWeb.Common.Helpers;
 
 namespace BlogWeb.Infrastructure.Services
 {
     public interface IUserService
     {
-        AuthenticateResponse Authenticate(AuthenticateRequest model);
-        IEnumerable<User> GetAll();
-        User GetById(int id);
+        Task<Response> Authenticate(AuthenticateRequest loginModel);
     }
 }

@@ -1,54 +1,101 @@
-using BlogWeb.Application.Entities.Authentication;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using BlogWeb.Application.Models;
+using BlogWeb.Application.Models.Emails;
 using BlogWeb.Common.Helpers;
 using BlogWeb.Infrastructure.Authorization;
 using BlogWeb.Infrastructure.Persistence;
-using Microsoft.Extensions.Options;
+using BlogWeb.Infrastructure.Services.Emails;
+using Microsoft.AspNetCore.Identity;
 
 namespace BlogWeb.Infrastructure.Services
 {
-    using BCrypt = BCrypt.Net.BCrypt;
     public class UserService : IUserService
     {
         private ApplicationDbContext _context;
         private IJwtUtils _jwtUtils;
-        private readonly AppSettings _appSettings;
-
+        private readonly UserManager<IdentityUser> _userManager;
+        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly IEmailService _emailService;
         public UserService(
-            ApplicationDbContext context,
-            IJwtUtils jwtUtils,
-            IOptions<AppSettings> appSettings)
+            ApplicationDbContext context
+            , IJwtUtils jwtUtils
+            , UserManager<IdentityUser> userManager
+            , RoleManager<IdentityRole> roleManager
+            , SignInManager<IdentityUser> signInManager
+            , IEmailService emailService)
         {
             _context = context;
             _jwtUtils = jwtUtils;
-            _appSettings = appSettings.Value;
+            _userManager = userManager;
+            _roleManager = roleManager;
+            _signInManager = signInManager;
+            _emailService = emailService;
         }
 
 
-        public AuthenticateResponse Authenticate(AuthenticateRequest model)
+        public async Task<Response> Authenticate(AuthenticateRequest loginModel)
         {
-            var user = _context.Users.SingleOrDefault(x => x.Username == model.Username);
+            try
+            {
+                // var user = _context.Users.SingleOrDefault(x => x.Username == model.Username);
+                var user = await _userManager.FindByNameAsync(loginModel.Username);
+                // validate
+                if (user.TwoFactorEnabled)
+                {
+                    await _signInManager.SignOutAsync();
+                    await _signInManager.PasswordSignInAsync(user, loginModel.Password, false, true);
+                    var token = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
 
-            // validate
-            if (user == null || !BCrypt.Verify(model.Password, user.PasswordHash))
+                    var message = new Message(new string[] { user.Email! }, "OTP Confrimation", token);
+                    _emailService.SendEmail(message);
+
+                    return new Response { Status = "Success", Message = $"We have sent an OTP to your Email {user.Email}" };
+                }
+
+                if (user != null && await _userManager.CheckPasswordAsync(user, loginModel.Password))
+                {
+                    var authClaims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, user.UserName),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                };
+                    var userRoles = await _userManager.GetRolesAsync(user);
+                    foreach (var role in userRoles)
+                    {
+                        authClaims.Add(new Claim(ClaimTypes.Role, role));
+                    }
+                    // authentication successful so generate jwt token
+                    var jwtToken = _jwtUtils.GenerateJwtToken(authClaims);
+
+                    return new AuthenticateResponse(user, new JwtSecurityTokenHandler().WriteToken(jwtToken), jwtToken.ValidTo);
+                    // return Ok(new
+                    // {
+                    //     token = new JwtSecurityTokenHandler().WriteToken(jwtToken),
+                    //     expiration = jwtToken.ValidTo
+                    // });
+                    //returning the token...
+
+                }
+                return new Response { Status = "Failure", Message = $"Username or password is incorrect" };
+            }
+            catch (System.Exception)
+            {
                 throw new AppException("Username or password is incorrect");
-
-            // authentication successful so generate jwt token
-            var jwtToken = _jwtUtils.GenerateJwtToken(user);
-
-            return new AuthenticateResponse(user, jwtToken);
+            }
         }
 
-        public IEnumerable<User> GetAll()
-        {
-            return _context.Users;
-        }
+        // public IEnumerable<UserApplication> GetAll()
+        // {
+        //     return _context.Users;
+        // }
 
-        public User GetById(int id)
-        {
-            var user = _context.Users.Find(id);
-            if (user == null) throw new KeyNotFoundException("User not found");
-            return user;
-        }
+        // public UserApplication GetById(int id)
+        // {
+        //     var user = _context.Users.Find(id);
+        //     if (user == null) throw new KeyNotFoundException("User not found");
+        //     return user;
+        // }
     }
 }

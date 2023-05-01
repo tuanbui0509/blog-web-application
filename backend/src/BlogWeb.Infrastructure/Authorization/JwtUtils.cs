@@ -2,34 +2,33 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using BlogWeb.Application.Entities.Authentication;
-using BlogWeb.Common.Helpers;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
 namespace BlogWeb.Infrastructure.Authorization
 {
     public class JwtUtils : IJwtUtils
     {
-        private readonly AppSettings _appSettings;
-
-        public JwtUtils(IOptions<AppSettings> appSettings)
+        private readonly IConfiguration _configuration;
+        public JwtUtils(IConfiguration configuration)
         {
-            _appSettings = appSettings.Value;
+            _configuration = configuration;
         }
 
-        public string GenerateJwtToken(User user)
+        public JwtSecurityToken GenerateJwtToken(List<Claim> authClaims)
         {
-            // generate token that is valid for 7 days
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new[] { new Claim("id", user.Id.ToString()) }),
-                Expires = DateTime.UtcNow.AddDays(7),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            };
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
+            // generate token that is valid for 2 days
+            var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
+
+            var token = new JwtSecurityToken(
+                issuer: _configuration["JWT:ValidIssuer"],
+                audience: _configuration["JWT:ValidAudience"],
+                expires: DateTime.Now.AddDays(2),
+                claims: authClaims,
+                signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
+                );
+
+            return token;
         }
 
         public int? ValidateJwtToken(string token)
@@ -38,7 +37,7 @@ namespace BlogWeb.Infrastructure.Authorization
                 return null;
 
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
+            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Secret"]);
             try
             {
                 tokenHandler.ValidateToken(token, new TokenValidationParameters

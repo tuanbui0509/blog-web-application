@@ -1,15 +1,23 @@
 using BlogWeb.Application.Entities;
 using BlogWeb.Application.Entities.Authentication;
+using BlogWeb.Common.Interfaces;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace BlogWeb.Infrastructure.Persistence
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext<UserApplication>
     {
-        public ApplicationDbContext(DbContextOptions options) : base(options)
+        private readonly ICurrentUserService _currentUserService;
+
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options,
+                                    ICurrentUserService currentUserService) : base(options)
         {
-            Database.EnsureCreated();
+            _currentUserService = currentUserService;
         }
+
         #region Add DbSet
         public DbSet<Post> Posts { get; set; }
         public DbSet<Category> Categories { get; set; }
@@ -18,30 +26,57 @@ namespace BlogWeb.Infrastructure.Persistence
         public DbSet<PostTags> PostTags { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<PostMeta> PostMetas { get; set; }
-        public DbSet<User> Users { get; set; }
         #endregion
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
+        {
+            foreach (EntityEntry<BaseEntity> entry in ChangeTracker.Entries<BaseEntity>())
+            {
+                switch (entry.State)
+                {
+                    case EntityState.Added:
+                        entry.Entity.CreatedBy = _currentUserService.UserId;
+                        entry.Entity.CreatedAt = DateTime.UtcNow;
+                        break;
+                    case EntityState.Modified:
+                        entry.Entity.ModifiedBy = _currentUserService.UserId;
+                        entry.Entity.ModifiedAt = DateTime.UtcNow;
+                        break;
+                }
+            }
 
+            var result = await base.SaveChangesAsync(cancellationToken);
+
+            // await DispatchEvents();
+
+            return result;
+        }
+        // private async Task DispatchEvents()
+        // {
+        //     while (true)
+        //     {
+        //         var domainEventEntity = ChangeTracker
+        //             .Entries<IHasDomainEvent>()
+        //             .Select(x => x.Entity.DomainEvents)
+        //             .SelectMany(x => x)
+        //             .FirstOrDefault(domainEvent => !domainEvent.IsPublished);
+
+        //         if (domainEventEntity == null) break;
+
+        //         domainEventEntity.IsPublished = true;
+        //         await _domainEventService.Publish(domainEventEntity);
+        //     }
+        // }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            //User
-            modelBuilder.Entity<User>(e =>
-            {
-                e.ToTable("Users");
-                e.HasKey(p => p.Id);
-                e.Property(e => e.Id)
-                        .ValueGeneratedOnAdd();
-            });
-
             // Category
             modelBuilder.Entity<Category>(p =>
             {
                 p.ToTable("Categories");
                 p.HasKey(p => p.Id);
                 p.Property(e => e.Id).UseIdentityColumn();
-                p.Property(e => e.CreatedOn).HasDefaultValueSql("getutcdate()");
-                p.Property(e => e.LastModifiedOn).HasDefaultValueSql("getutcdate()");
-                p.Property(e => e.PublishedOn).HasDefaultValueSql("getutcdate()");
+                p.Property(e => e.CreatedAt).HasDefaultValueSql("getutcdate()");
+                p.Property(e => e.ModifiedAt).HasDefaultValueSql("getutcdate()");
                 p.Property(e => e.Title).IsRequired().HasMaxLength(150);
                 p.Property(e => e.Slug).IsRequired().HasMaxLength(100);
                 p.Property(e => e.Description).IsRequired().HasMaxLength(300);
@@ -52,13 +87,16 @@ namespace BlogWeb.Infrastructure.Persistence
                 p.ToTable("Posts");
                 p.HasKey(p => p.Id);
                 p.Property(e => e.Id).UseIdentityColumn();
-                p.Property(e => e.CreatedOn).HasDefaultValueSql("getutcdate()");
-                p.Property(e => e.LastModifiedOn).HasDefaultValueSql("getutcdate()");
-                p.Property(e => e.PublishedOn).HasDefaultValueSql("getutcdate()");
+                p.Property(e => e.CreatedAt).HasDefaultValueSql("getutcdate()");
+                p.Property(e => e.ModifiedAt).HasDefaultValueSql("getutcdate()");
                 p.Property(e => e.Title).IsRequired().HasMaxLength(150);
                 p.Property(e => e.Slug).IsRequired().HasMaxLength(100);
                 p.Property(e => e.Summary).IsRequired().HasMaxLength(150);
                 p.Property(e => e.PostContents).IsRequired().HasMaxLength(300);
+                p.HasOne(e => e.UserApplication)
+                        .WithMany(e => e.Posts)
+                        .HasForeignKey(e => e.AuthorId)
+                        .HasConstraintName("FK_Post_User");
             });
 
             // Tags
@@ -67,9 +105,8 @@ namespace BlogWeb.Infrastructure.Persistence
                 p.ToTable("Tags");
                 p.HasKey(p => p.Id);
                 p.Property(e => e.Id).UseIdentityColumn();
-                p.Property(e => e.CreatedOn).HasDefaultValueSql("getutcdate()");
-                p.Property(e => e.LastModifiedOn).HasDefaultValueSql("getutcdate()");
-                p.Property(e => e.PublishedOn).HasDefaultValueSql("getutcdate()");
+                p.Property(e => e.CreatedAt).HasDefaultValueSql("getutcdate()");
+                p.Property(e => e.ModifiedAt).HasDefaultValueSql("getutcdate()");
                 p.Property(e => e.Title).IsRequired().HasMaxLength(150);
                 p.Property(e => e.Slug).IsRequired().HasMaxLength(100);
                 p.Property(e => e.Description).IsRequired().HasMaxLength(250);
@@ -137,6 +174,20 @@ namespace BlogWeb.Infrastructure.Persistence
                     .HasForeignKey(e => e.PostId)
                     .HasConstraintName("FK_Comment_Post");
             });
+            foreach (var foreignKey in modelBuilder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))
+                foreignKey.DeleteBehavior = DeleteBehavior.Restrict;
+            SeedRoles(modelBuilder);
+        }
+
+        private static void SeedRoles(ModelBuilder builder)
+        {
+            builder.Entity<IdentityRole>().HasData
+                (
+                    new IdentityRole() { Name = "SuperAdmin", ConcurrencyStamp = "1", NormalizedName = "SuperAdmin" },
+                    new IdentityRole() { Name = "Admin", ConcurrencyStamp = "2", NormalizedName = "Admin" },
+                    new IdentityRole() { Name = "SuperUser", ConcurrencyStamp = "3", NormalizedName = "SuperUser" },
+                    new IdentityRole() { Name = "User", ConcurrencyStamp = "4", NormalizedName = "User" }
+                );
         }
     }
 }
