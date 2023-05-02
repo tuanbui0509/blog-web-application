@@ -1,13 +1,13 @@
-using BlogWeb.Application.Entities.Authentication;
-using BlogWeb.Application.Models;
-using BlogWeb.Infrastructure.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
+using BlogWeb.Application.Models;
+using BlogWeb.Infrastructure.Services;
+using Microsoft.AspNetCore.Http;
+using BlogWeb.Common.Constants;
+
 namespace BlogWeb.Presentation.Controller
 {
-    // [Authorize(Roles = "Admin, User")]
     [ApiController]
     [Route("api/v1/[controller]")]
     public class UsersController : ControllerBase
@@ -21,10 +21,24 @@ namespace BlogWeb.Presentation.Controller
 
         [AllowAnonymous]
         [HttpPost("[action]")]
-        public IActionResult Authenticate(AuthenticateRequest model)
+        public async Task<IActionResult> Authenticate(AuthenticateRequest model)
         {
-            var response = _userService.Authenticate(model);
+            var response = await _userService.Authenticate(model);
             return Ok(response);
+        }
+        
+        [Authorize(Roles = Roles.Admin)]
+        [HttpGet("[action]")]
+        public IEnumerable<string> Users()
+        {
+            return new List<string> { "Ahmed", "Ali", "Ahsan" };
+        }
+
+        [Authorize(Roles = Roles.SuperAdmin)]
+        [HttpGet("[action]")]
+        public IEnumerable<string> UsersById()
+        {
+            return new List<string> { "Ahmed", "Ali", "hahaha","huhuhu" };
         }
 
         // [Authorize(Roles = "Admin")]

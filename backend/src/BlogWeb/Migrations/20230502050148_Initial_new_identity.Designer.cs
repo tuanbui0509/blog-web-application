@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BlogWeb.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20230501160239_Initial_db")]
-    partial class Initial_db
+    [Migration("20230502050148_Initial_new_identity")]
+    partial class Initial_new_identity
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -391,36 +391,6 @@ namespace BlogWeb.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = "09593b0e-79d6-43b2-88b9-5c92cc90223b",
-                            ConcurrencyStamp = "1",
-                            Name = "SuperAdmin",
-                            NormalizedName = "SuperAdmin"
-                        },
-                        new
-                        {
-                            Id = "89b40735-93d3-42d6-89d0-a34656b2d3b6",
-                            ConcurrencyStamp = "2",
-                            Name = "Admin",
-                            NormalizedName = "Admin"
-                        },
-                        new
-                        {
-                            Id = "4d2db5cd-adcf-42f8-9a4b-d09eb5c78226",
-                            ConcurrencyStamp = "3",
-                            Name = "SuperUser",
-                            NormalizedName = "SuperUser"
-                        },
-                        new
-                        {
-                            Id = "27629b74-ee64-43ea-ba4a-242e60f999d7",
-                            ConcurrencyStamp = "4",
-                            Name = "User",
-                            NormalizedName = "User"
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

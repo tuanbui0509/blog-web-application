@@ -3,12 +3,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
-
 namespace BlogWeb.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial_db : Migration
+    public partial class Initial_new_identity : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -337,17 +335,6 @@ namespace BlogWeb.Migrations
                         principalTable: "Tags",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.InsertData(
-                table: "AspNetRoles",
-                columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
-                values: new object[,]
-                {
-                    { "09593b0e-79d6-43b2-88b9-5c92cc90223b", "1", "SuperAdmin", "SuperAdmin" },
-                    { "27629b74-ee64-43ea-ba4a-242e60f999d7", "4", "User", "User" },
-                    { "4d2db5cd-adcf-42f8-9a4b-d09eb5c78226", "3", "SuperUser", "SuperUser" },
-                    { "89b40735-93d3-42d6-89d0-a34656b2d3b6", "2", "Admin", "Admin" }
                 });
 
             migrationBuilder.CreateIndex(

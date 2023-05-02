@@ -1,20 +1,21 @@
+using System.Text;
 using System.Text.Json.Serialization;
+
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+
+using BlogWeb.Application.Entities.Authentication;
+using BlogWeb.Application.Models.Emails;
 using BlogWeb.Common.Helpers;
+using BlogWeb.Common.Interfaces;
 using BlogWeb.Infrastructure.Authorization;
 using BlogWeb.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
-using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using BlogWeb.Infrastructure.Services.Emails;
-using BlogWeb.Application.Models.Emails;
-using Microsoft.AspNetCore.Identity;
-using BlogWeb.Common.Interfaces;
-using BlogWeb.Infrastructure.Services.Users;
-using BlogWeb.Application.Entities.Authentication;
 using BlogWeb.Infrastructure.Services;
-using Microsoft.Extensions.DependencyInjection;
+using BlogWeb.Infrastructure.Services.Emails;
+using BlogWeb.Infrastructure.Services.Users;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
@@ -26,31 +27,29 @@ services.AddDbContext<ApplicationDbContext>(option =>
 {
     option.UseSqlServer(builder.Configuration.GetConnectionString("WebBlogDb"), b => b.MigrationsAssembly("BlogWeb"));
 });
+// DI Identity
+services.AddIdentity<UserApplication, IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
 
 //Add Config for Required Email
 builder.Services.Configure<IdentityOptions>(
     opts => opts.SignIn.RequireConfirmedEmail = true
     );
 
-// Controller
-services.AddControllers().AddJsonOptions(x =>
-{
-    // serialize enums as strings in api responses (e.g. Role)
-    x.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-});
-
-// services.AddIdentity<UserApplication, IdentityRole>(options =>
+// services.AddCors(options =>
 // {
-//     // Password settings
-//     options.Password.RequireDigit = true;
-//     options.Password.RequiredLength = 8;
-//     options.Password.RequireNonAlphanumeric = false;
-//     options.Password.RequireUppercase = true;
-//     options.Password.RequireLowercase = false;
-//     options.Password.RequiredUniqueChars = 1;
-// })
-//     .AddEntityFrameworkStores<ApplicationDbContext>()
-//     .AddDefaultTokenProviders();
+//     options.AddDefaultPolicy(
+//         policy =>
+//         {
+//             policy.WithOrigins("http://example.com",
+//                                 "http://www.contoso.com");
+//         });
+// });
+
+// Controller
+services.AddControllers();
+
 services.AddHttpContextAccessor();
 
 builder.Services.AddSwaggerGen(option =>
@@ -81,7 +80,7 @@ builder.Services.AddSwaggerGen(option =>
     });
 });
 
-services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+// services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
 // configure strongly typed settings object
 services.AddEndpointsApiExplorer();
@@ -91,13 +90,10 @@ var emailConfig = builder.Configuration.GetSection("EmailConfiguration").Get<Ema
 services.AddSingleton(emailConfig);
 
 // configure DI for application services
-services.AddIdentity<UserApplication, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>();
-services.AddScoped<IUserService, UserService>();
+services.AddTransient<IUserService, UserService>();
 services.AddScoped<IJwtUtils, JwtUtils>();
 services.AddScoped<IEmailService, EmailService>();
 services.AddSingleton<ICurrentUserService, CurrentUserService>();
-services.AddIdentity<UserApplication, IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationDbContext>();
 //User Manager Service
 // Adding Authentication
 var secretKeyBytes = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]);
@@ -162,27 +158,10 @@ try
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<UserApplication>>();
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     await ApplicationDbContextSeed.SeedDefaultUserAsync(userManager, roleManager);
-    await dataContext.SaveChangesAsync();
 }
 catch (Exception ex)
 {
-    // var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-
-    // logger.LogError(ex, "An error occurred while migrating or seeding the database.");
-
-    throw ex;
+    throw new Exception(ex.Message);
 }
 
-
-// {
-//     var testUsers = new List<UserApplication>
-//     {
-//         new UserApplication { UserName = "admin", PasswordHash = BCryptNet.HashPassword("admin") },
-//         new UserApplication { UserName = "user", PasswordHash = BCryptNet.HashPassword("user") }
-//     };
-
-//     using var scope = app.Services.CreateScope();
-//     var dataContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-//     dataContext.Users.AddRange(testUsers);
-// }
 app.Run("http://localhost:4000");

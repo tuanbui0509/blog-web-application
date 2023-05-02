@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using BlogWeb.Application.Entities.Authentication;
 using BlogWeb.Application.Models;
 using BlogWeb.Application.Models.Emails;
 using BlogWeb.Common.Helpers;
@@ -14,16 +15,16 @@ namespace BlogWeb.Infrastructure.Services
     {
         private ApplicationDbContext _context;
         private IJwtUtils _jwtUtils;
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly UserManager<UserApplication> _userManager;
+        private readonly SignInManager<UserApplication> _signInManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IEmailService _emailService;
         public UserService(
             ApplicationDbContext context
             , IJwtUtils jwtUtils
-            , UserManager<IdentityUser> userManager
+            , UserManager<UserApplication> userManager
             , RoleManager<IdentityRole> roleManager
-            , SignInManager<IdentityUser> signInManager
+            , SignInManager<UserApplication> signInManager
             , IEmailService emailService)
         {
             _context = context;
@@ -33,7 +34,6 @@ namespace BlogWeb.Infrastructure.Services
             _signInManager = signInManager;
             _emailService = emailService;
         }
-
 
         public async Task<Response> Authenticate(AuthenticateRequest loginModel)
         {
@@ -85,17 +85,5 @@ namespace BlogWeb.Infrastructure.Services
                 throw new AppException("Username or password is incorrect");
             }
         }
-
-        // public IEnumerable<UserApplication> GetAll()
-        // {
-        //     return _context.Users;
-        // }
-
-        // public UserApplication GetById(int id)
-        // {
-        //     var user = _context.Users.Find(id);
-        //     if (user == null) throw new KeyNotFoundException("User not found");
-        //     return user;
-        // }
     }
 }

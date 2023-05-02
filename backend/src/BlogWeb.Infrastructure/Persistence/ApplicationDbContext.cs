@@ -176,18 +176,6 @@ namespace BlogWeb.Infrastructure.Persistence
             });
             foreach (var foreignKey in modelBuilder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))
                 foreignKey.DeleteBehavior = DeleteBehavior.Restrict;
-            SeedRoles(modelBuilder);
-        }
-
-        private static void SeedRoles(ModelBuilder builder)
-        {
-            builder.Entity<IdentityRole>().HasData
-                (
-                    new IdentityRole() { Name = "SuperAdmin", ConcurrencyStamp = "1", NormalizedName = "SuperAdmin" },
-                    new IdentityRole() { Name = "Admin", ConcurrencyStamp = "2", NormalizedName = "Admin" },
-                    new IdentityRole() { Name = "SuperUser", ConcurrencyStamp = "3", NormalizedName = "SuperUser" },
-                    new IdentityRole() { Name = "User", ConcurrencyStamp = "4", NormalizedName = "User" }
-                );
         }
     }
 }
