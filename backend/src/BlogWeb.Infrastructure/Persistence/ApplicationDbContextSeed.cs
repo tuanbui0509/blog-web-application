@@ -1,5 +1,5 @@
+using BlogWeb.Application.Common.Constants;
 using BlogWeb.Application.Entities.Authentication;
-using BlogWeb.Common.Constants;
 using Microsoft.AspNetCore.Identity;
 
 namespace BlogWeb.Infrastructure.Persistence
@@ -9,11 +9,22 @@ namespace BlogWeb.Infrastructure.Persistence
         public static async Task SeedDefaultUserAsync(UserManager<UserApplication> userManager, RoleManager<IdentityRole> roleManager)
         {
             //Seed Roles
-            // await roleManager.CreateAsync(new IdentityRole(Roles.SuperAdmin));
-            // await roleManager.CreateAsync(new IdentityRole(Roles.Admin));
-            // await roleManager.CreateAsync(new IdentityRole(Roles.SuperUser));
-            // await roleManager.CreateAsync(new IdentityRole(Roles.User));
-
+            if (!(await roleManager.RoleExistsAsync(Roles.SuperAdmin)))
+            {
+                await roleManager.CreateAsync(new IdentityRole(Roles.SuperAdmin));
+            }
+            if (!(await roleManager.RoleExistsAsync(Roles.Admin)))
+            {
+                await roleManager.CreateAsync(new IdentityRole(Roles.Admin));
+            }
+            if (!(await roleManager.RoleExistsAsync(Roles.SuperUser)))
+            {
+                await roleManager.CreateAsync(new IdentityRole(Roles.SuperUser));
+            }
+            if (!(await roleManager.RoleExistsAsync(Roles.User)))
+            {
+                await roleManager.CreateAsync(new IdentityRole(Roles.User));
+            }
             var defaultUser = new UserApplication
             {
                 UserName = "admin@gmail.com",
@@ -23,7 +34,7 @@ namespace BlogWeb.Infrastructure.Persistence
             };
             if (userManager.Users.All(u => u.UserName != defaultUser.UserName))
             {
-                
+
                 IdentityResult result = await userManager.CreateAsync(defaultUser, "Admin@123");
                 if (!result.Succeeded)
                     foreach (IdentityError error in result.Errors)
@@ -40,7 +51,7 @@ namespace BlogWeb.Infrastructure.Persistence
             };
             if (userManager.Users.All(u => u.UserName != defaultUser2.UserName))
             {
-                
+
                 IdentityResult result = await userManager.CreateAsync(defaultUser2, "Admin@123");
                 if (!result.Succeeded)
                     foreach (IdentityError error in result.Errors)

@@ -1,4 +1,4 @@
-namespace BlogWeb.Common.Interfaces
+namespace BlogWeb.Application.Common.Interfaces
 {
     public interface ICurrentUserService
     {

@@ -2,9 +2,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 using BlogWeb.Application.Models;
-using BlogWeb.Infrastructure.Services;
+using BlogWeb.Application.Common.Interfaces;
+using BlogWeb.Application.Common.Constants;
 using Microsoft.AspNetCore.Http;
-using BlogWeb.Common.Constants;
+using BlogWeb.Application.Common.Helpers;
+using BlogWeb.Application.Models.SignUp;
 
 namespace BlogWeb.Presentation.Controller
 {
@@ -21,24 +23,31 @@ namespace BlogWeb.Presentation.Controller
 
         [AllowAnonymous]
         [HttpPost("[action]")]
-        public async Task<IActionResult> Authenticate(AuthenticateRequest model)
+        public async Task<IActionResult> Login(AuthenticateRequest model)
         {
             var response = await _userService.Authenticate(model);
             return Ok(response);
         }
-        
-        [Authorize(Roles = Roles.Admin)]
-        [HttpGet("[action]")]
-        public IEnumerable<string> Users()
+
+        [HttpPost("[action]")]
+        public async Task<IActionResult> Register([FromBody] RegisterUser registerUser)
         {
-            return new List<string> { "Ahmed", "Ali", "Ahsan" };
+            var response = await _userService.RegisterUser(registerUser);
+            return Ok(response);
+        }
+
+        [HttpPost("LoginWithOTP")]
+        public async Task<IActionResult> LoginWithOTP(string code, string username)
+        {
+            var response = await _userService.LoginWithOTP(code, username);
+            return Ok(response);
         }
 
         [Authorize(Roles = Roles.SuperAdmin)]
         [HttpGet("[action]")]
         public IEnumerable<string> UsersById()
         {
-            return new List<string> { "Ahmed", "Ali", "hahaha","huhuhu" };
+            return new List<string> { "Ahmed", "Ali", "hahaha", "huhuhu" };
         }
 
         // [Authorize(Roles = "Admin")]

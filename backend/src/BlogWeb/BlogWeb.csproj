@@ -8,6 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Mapster" Version="7.3.0" />
+    <PackageReference Include="Mapster.DependencyInjection" Version="1.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="7.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.1" />
@@ -21,7 +23,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BlogWeb.Application\BlogWeb.Application.csproj" />
-    <ProjectReference Include="..\BlogWeb.Common\BlogWeb.Common.csproj" />
     <ProjectReference Include="..\BlogWeb.Domain\BlogWeb.Domain.csproj" />
     <ProjectReference Include="..\BlogWeb.Infrastructure\BlogWeb.Infrastructure.csproj" />
     <ProjectReference Include="..\BlogWeb.Presentation\BlogWeb.Presentation.csproj" />

@@ -1,7 +1,5 @@
-using BlogWeb.Common.Helpers;
-using BlogWeb.Infrastructure.Services;
+using BlogWeb.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Options;
 
 namespace BlogWeb.Infrastructure.Authorization
 {

@@ -1,4 +1,4 @@
-namespace BlogWeb.Common.Helpers
+namespace BlogWeb.Application.Common.Helpers
 {
     public class AppSettings
     {

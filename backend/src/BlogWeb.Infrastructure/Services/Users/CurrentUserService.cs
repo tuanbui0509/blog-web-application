@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using BlogWeb.Common.Interfaces;
+using BlogWeb.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Http;
 
 namespace BlogWeb.Infrastructure.Services.Users

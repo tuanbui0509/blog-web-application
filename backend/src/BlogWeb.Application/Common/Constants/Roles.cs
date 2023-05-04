@@ -1,4 +1,4 @@
-namespace BlogWeb.Common.Constants
+namespace BlogWeb.Application.Common.Constants
 {
     public class Roles
     {
