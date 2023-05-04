@@ -1,7 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
-namespace BlogWeb.Common.Helpers
+namespace BlogWeb.Application.Common.Helpers
 {
     public class ErrorHandlerMiddleware
     {

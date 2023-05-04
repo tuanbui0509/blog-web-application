@@ -8,8 +8,8 @@ public class BaseEntity
     [DatabaseGeneratedAttribute(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
     public bool IsPublished { get; set; }
-    public DateTime CreatedOn { get; set; }
-    public DateTime LastModifiedOn { get; set; }
-    public DateTime PublishedOn { get; set; }
+    public DateTime CreatedAt { get; set; }
     public string? CreatedBy { get; set; }
+    public string? ModifiedBy { get; set; }
+    public DateTime ModifiedAt { get; set; }
 }

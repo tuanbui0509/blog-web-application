@@ -18,16 +18,16 @@
 - Create entities for blog project use Confluent API
 - ```sh
     ## Remove all applied migrations
-    dotnet ef database update 0 --context BlogContext 
+    dotnet ef database update 0 --context ApplicationDbContext 
 
     ## Remove migration files from file system
-    dotnet ef migrations remove --context BlogContext 
+    dotnet ef migrations remove --context ApplicationDbContext 
 
     ## Add new migration
-    dotnet ef migrations add InitialCreate --context BlogContext
+    dotnet ef migrations add InitialCreate --context ApplicationDbContext
 
     ## Apply new migration to database
-    dotnet ef database update --context BlogContext
+    dotnet ef database update --context ApplicationDbContext
     ```
 - Seed Data
 - Auto mapping

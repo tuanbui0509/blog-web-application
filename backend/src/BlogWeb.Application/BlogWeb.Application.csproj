@@ -6,6 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
+    <PackageReference Include="MediatR" Version="12.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="7.0.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.5">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -19,9 +22,12 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <!-- <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" /> -->
+    <!-- <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.1.0" /> -->
+    
+    <PackageReference Include="MimeKit" Version="4.0.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\BlogWeb.Domain\BlogWeb.Domain.csproj" />
-    <ProjectReference Include="..\BlogWeb.Common\BlogWeb.Common.csproj" />
   </ItemGroup>
 </Project>

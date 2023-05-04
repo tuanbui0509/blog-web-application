@@ -1,34 +1,71 @@
-using System.Text.Json.Serialization;
-using BCryptNet = BCrypt.Net.BCrypt;
-using BlogWeb.Common.Helpers;
-using BlogWeb.Infrastructure.Authorization;
-using BlogWeb.Infrastructure.Persistence;
-using BlogWeb.Infrastructure.Services;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
-using BlogWeb.Application.Entities.Authentication;
 using System.Text;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+
+using BlogWeb.Application.Entities.Authentication;
+using BlogWeb.Application.Models.Emails;
+using BlogWeb.Infrastructure.Persistence;
+using BlogWeb.Application.Common.Helpers;
+using BlogWeb.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 var services = builder.Services;
 var env = builder.Environment;
 
-//Add dbContext, here you can we are using In-memory database.
+//Add dbContext, here you can we are using In-memory database.For Entity Framework
 services.AddDbContext<ApplicationDbContext>(option =>
 {
     option.UseSqlServer(builder.Configuration.GetConnectionString("WebBlogDb"), b => b.MigrationsAssembly("BlogWeb"));
 });
-services.AddControllers().AddJsonOptions(x =>
+
+// add all services
+services.AddApplication();
+
+// Controller
+services.AddControllers();
+
+builder.Services.AddSwaggerGen(option =>
 {
-    // serialize enums as strings in api responses (e.g. Role)
-    x.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    option.SwaggerDoc("v1", new OpenApiInfo { Title = "Auth API", Version = "v1" });
+    option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        In = ParameterLocation.Header,
+        Description = "Please enter a valid token",
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        BearerFormat = "JWT",
+        Scheme = "Bearer"
+    });
+    option.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type=ReferenceType.SecurityScheme,
+                    Id="Bearer"
+                }
+            },
+            new string[]{}
+        }
+    });
 });
 
-var secretKey = builder.Configuration["AppSettings:Secret"];
-var secretKeyBytes = Encoding.UTF8.GetBytes(secretKey);
+// configure strongly typed settings object
+services.AddEndpointsApiExplorer();
+
+//Add Email Configs
+var emailConfig = builder.Configuration.GetSection("EmailConfiguration").Get<EmailConfiguration>();
+services.AddSingleton(emailConfig);
+
+// Adding Authentication
+var secretKeyBytes = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]);
 services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -36,31 +73,17 @@ services.AddAuthentication(options =>
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(o =>
 {
+    o.SaveToken = true;
+    o.RequireHttpsMetadata = false;
     o.TokenValidationParameters = new TokenValidationParameters
     {
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(secretKeyBytes),
-        ValidateIssuer = false,
-        ValidateAudience = false,
-        ValidateLifetime = false,
-        ValidateIssuerSigningKey = false,
-        ClockSkew = TimeSpan.Zero
+        ValidateIssuer = true,
+        ValidateAudience = true
     };
 });
-
-services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebBlogApplication", Version = "v1" });
-});
-// configure strongly typed settings object
-services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
-services.AddEndpointsApiExplorer();
-services.AddSwaggerGen();
-
-// configure DI for application services
-services.AddScoped<IJwtUtils, JwtUtils>();
-services.AddScoped<IUserService, UserService>();
 
 var app = builder.Build();
 
@@ -75,7 +98,7 @@ app.UseCors(x => x
 app.UseMiddleware<ErrorHandlerMiddleware>();
 
 // custom jwt auth middleware
-app.UseMiddleware<JwtMiddleware>();
+// app.UseMiddleware<JwtMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
@@ -91,18 +114,29 @@ app.UseAuthorization();
 app.MapControllers();
 
 // create hardcoded test users in db on startup
-{
-    var testUsers = new List<User>
-    {
-        new User { FirstName = "Admin", LastName = "User", Username = "admin", PasswordHash = BCryptNet.HashPassword("admin"), Role = Role.Admin },
-        new User { FirstName = "Normal", LastName = "User", Username = "user", PasswordHash = BCryptNet.HashPassword("user"), Role = Role.User }
-    };
+await using var provider = new ServiceCollection()
+    .AddScoped<ApplicationDbContext>()
+    .BuildServiceProvider();
 
-    using var scope = app.Services.CreateScope();
-    var dataContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    dataContext.Users.AddRange(testUsers);
-    // dataContext.Database.ExecuteSqlRaw("SET IDENTITY_INSERT dbo.WebBlogDatabase ON;");
-    // dataContext.SaveChanges();
-    // dataContext.Database.ExecuteSqlRaw("SET IDENTITY_INSERT dbo.WebBlogDatabase OFF;");
+using var scope = app.Services.CreateScope();
+{
+    try
+    {
+        var dataContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        await dataContext.Database.MigrateAsync();
+
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<UserApplication>>();
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        await ApplicationDbContextSeed.SeedDefaultUserAsync(userManager, roleManager);
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+        logger.LogError(ex, "An error occurred while migrating or seeding the database.");
+
+        throw;
+    }
 }
+
 app.Run("http://localhost:4000");
