@@ -7,7 +7,6 @@ using BlogWeb.Infrastructure.Authorization;
 using BlogWeb.Infrastructure.Persistence;
 using BlogWeb.Infrastructure.Services.Emails;
 
-using MapsterMapper;
 using BlogWeb.Domain.Emails;
 using BlogWeb.Domain.Models.Authentication;
 using BlogWeb.Domain.Dto;
@@ -18,6 +17,7 @@ using BlogWeb.Domain.SignUp;
 using BlogWeb.Domain.Constants;
 using BlogWeb.Domain.Entities.Authentication;
 using BlogWeb.Application.Interfaces;
+using AutoMapper;
 
 namespace BlogWeb.Infrastructure.Services.Users
 {

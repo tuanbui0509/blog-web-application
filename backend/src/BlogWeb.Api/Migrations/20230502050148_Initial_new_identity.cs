@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace BlogWeb.Migrations
+namespace BlogWeb.Api.Migrations
 {
     /// <inheritdoc />
     public partial class Initial_new_identity : Migration

@@ -6,25 +6,25 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
-using BlogWeb.Domain.Entities.Authentication;
-using BlogWeb.Infrastructure.Persistence;
-using BlogWeb.DependencyInjection;
-using BlogWeb.Domain.Helpers;
+using BlogWeb.Api.DependencyInjection;
 using BlogWeb.Domain.Emails;
+using BlogWeb.Domain.Entities.Authentication;
+using BlogWeb.Domain.Helpers;
+using BlogWeb.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 var services = builder.Services;
 var env = builder.Environment;
 
+// add all services
+services.AddApplication();
 //Add dbContext, here you can we are using In-memory database.For Entity Framework
 services.AddDbContext<ApplicationDbContext>(option =>
 {
-    option.UseSqlServer(builder.Configuration.GetConnectionString("WebBlogDb"), b => b.MigrationsAssembly("BlogWeb"));
+    option.UseSqlServer(builder.Configuration.GetConnectionString("WebBlogDb"), b => b.MigrationsAssembly("BlogWeb.Api"));
 });
 
-// add all services
-services.AddApplication();
 
 // Controller
 services.AddControllers();
