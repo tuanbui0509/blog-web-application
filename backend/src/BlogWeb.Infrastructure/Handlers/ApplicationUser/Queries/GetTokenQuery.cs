@@ -1,6 +1,7 @@
-using BlogWeb.Application.Common.Interfaces;
-using BlogWeb.Application.Common.Models;
-using BlogWeb.Application.Models;
+using BlogWeb.Application.Interfaces;
+using BlogWeb.Domain.Interfaces;
+using BlogWeb.Domain.Models;
+using BlogWeb.Domain.Models.Authentication;
 using BlogWeb.Infrastructure.Authorization;
 
 namespace BlogWeb.Infrastructure.ApplicationUser.Queries

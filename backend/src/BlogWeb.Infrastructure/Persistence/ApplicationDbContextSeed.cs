@@ -1,5 +1,5 @@
-using BlogWeb.Application.Common.Constants;
-using BlogWeb.Application.Entities.Authentication;
+using BlogWeb.Domain.Constants;
+using BlogWeb.Domain.Entities.Authentication;
 using Microsoft.AspNetCore.Identity;
 
 namespace BlogWeb.Infrastructure.Persistence

@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BlogWeb.Application\BlogWeb.Application.csproj" />
+    <ProjectReference Include="..\BlogWeb.Domain\BlogWeb.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,6 +24,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
     <PackageReference Include="MimeKit" Version="4.0.0" />
   </ItemGroup>
 

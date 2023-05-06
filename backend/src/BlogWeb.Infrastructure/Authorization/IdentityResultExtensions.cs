@@ -1,4 +1,4 @@
-using BlogWeb.Application.Common.Models;
+using BlogWeb.Domain.Models;
 using Microsoft.AspNetCore.Identity;
 
 namespace BlogWeb.Infrastructure.Authorization

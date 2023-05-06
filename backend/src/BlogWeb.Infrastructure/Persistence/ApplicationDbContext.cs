@@ -1,6 +1,6 @@
-using BlogWeb.Application.Common.Interfaces;
-using BlogWeb.Application.Entities;
-using BlogWeb.Application.Entities.Authentication;
+using BlogWeb.Application.Interfaces;
+using BlogWeb.Domain.Entities;
+using BlogWeb.Domain.Entities.Authentication;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;

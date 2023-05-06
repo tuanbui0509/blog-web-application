@@ -1,10 +1,6 @@
 using System.Reflection;
 
 using Microsoft.AspNetCore.Identity;
-
-using BlogWeb.Application.Common.Behaviors;
-using BlogWeb.Application.Common.Interfaces;
-using BlogWeb.Application.Entities.Authentication;
 using BlogWeb.Infrastructure.Authorization;
 using BlogWeb.Infrastructure.Persistence;
 using BlogWeb.Infrastructure.Services.Emails;
@@ -18,6 +14,9 @@ using Mapster;
 
 using MediatR;
 using MapsterMapper;
+using BlogWeb.Domain.Entities.Authentication;
+using BlogWeb.Application.Behaviors;
+using BlogWeb.Application.Interfaces;
 
 namespace BlogWeb.DependencyInjection
 {
@@ -38,11 +37,8 @@ namespace BlogWeb.DependencyInjection
 
             // Mediator
             services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
-            // services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(Assembly.GetExecutingAssembly()));
-            services.AddMediatR(cfg =>
-            {
-                cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
-            });
+            services.AddMediatR(_ => _.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AuthorizationBehavior<,>));
             // services.AddTransient(typeof(IPipelineBehavior<,>), typeof(PerformanceBehavior<,>));
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));

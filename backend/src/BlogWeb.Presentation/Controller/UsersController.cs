@@ -1,18 +1,17 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
-using BlogWeb.Application.Models;
-using BlogWeb.Application.Common.Interfaces;
-using BlogWeb.Application.Common.Constants;
-using Microsoft.AspNetCore.Http;
-using BlogWeb.Application.Common.Helpers;
-using BlogWeb.Application.Models.SignUp;
+using BlogWeb.Infrastructure.ApplicationUser.Queries;
+using BlogWeb.Domain.Models;
+using BlogWeb.Domain.SignUp;
+using BlogWeb.Domain.Models.Authentication;
+using BlogWeb.Domain.Constants;
+using BlogWeb.Application.Interfaces;
 
 namespace BlogWeb.Presentation.Controller
 {
     [ApiController]
     [Route("api/v1/[controller]")]
-    public class UsersController : ControllerBase
+    public class UsersController : ApiControllerBase
     {
         private readonly IUserService _userService;
 
@@ -23,10 +22,14 @@ namespace BlogWeb.Presentation.Controller
 
         [AllowAnonymous]
         [HttpPost("[action]")]
-        public async Task<IActionResult> Login(AuthenticateRequest model)
+        // public async Task<IActionResult> Login(AuthenticateRequest model)
+        // {
+        //     var response = await _userService.Authenticate(model);
+        //     return Ok(response);
+        // }
+        public async Task<ActionResult<ServiceResult<AuthenticateResponse>>> Login(GetTokenQuery query, CancellationToken cancellationToken)
         {
-            var response = await _userService.Authenticate(model);
-            return Ok(response);
+            return Ok(await Mediator.Send(query, cancellationToken));
         }
 
         [HttpPost("[action]")]

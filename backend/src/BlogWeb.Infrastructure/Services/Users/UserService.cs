@@ -3,22 +3,21 @@ using System.Security.Claims;
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-
-using BlogWeb.Application.Common.Exceptions;
-using BlogWeb.Application.Common.Helpers;
-using BlogWeb.Application.Common.Interfaces;
-using BlogWeb.Application.Common.Models;
-using BlogWeb.Application.Dto;
-using BlogWeb.Application.Entities.Authentication;
-using BlogWeb.Application.Models;
-using BlogWeb.Application.Models.Emails;
-using BlogWeb.Application.Models.SignUp;
 using BlogWeb.Infrastructure.Authorization;
 using BlogWeb.Infrastructure.Persistence;
 using BlogWeb.Infrastructure.Services.Emails;
 
 using MapsterMapper;
-using BlogWeb.Application.Common.Constants;
+using BlogWeb.Domain.Emails;
+using BlogWeb.Domain.Models.Authentication;
+using BlogWeb.Domain.Dto;
+using BlogWeb.Domain.Helpers;
+using BlogWeb.Domain.Exceptions;
+using BlogWeb.Domain.Models;
+using BlogWeb.Domain.SignUp;
+using BlogWeb.Domain.Constants;
+using BlogWeb.Domain.Entities.Authentication;
+using BlogWeb.Application.Interfaces;
 
 namespace BlogWeb.Infrastructure.Services.Users
 {

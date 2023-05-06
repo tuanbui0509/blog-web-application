@@ -6,11 +6,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
-using BlogWeb.Application.Entities.Authentication;
-using BlogWeb.Application.Models.Emails;
+using BlogWeb.Domain.Entities.Authentication;
 using BlogWeb.Infrastructure.Persistence;
-using BlogWeb.Application.Common.Helpers;
 using BlogWeb.DependencyInjection;
+using BlogWeb.Domain.Helpers;
+using BlogWeb.Domain.Emails;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.

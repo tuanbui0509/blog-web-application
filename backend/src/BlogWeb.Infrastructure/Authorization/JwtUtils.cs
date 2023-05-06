@@ -1,7 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using BlogWeb.Application.Entities.Authentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
