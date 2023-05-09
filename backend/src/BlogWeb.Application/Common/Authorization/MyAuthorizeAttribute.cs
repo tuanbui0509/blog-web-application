@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 
-namespace BlogWeb.Infrastructure.Authorization
+namespace BlogWeb.Application.Common.Authorization
 {
     public class MyAuthorizeAttribute:AuthorizeAttribute
     {

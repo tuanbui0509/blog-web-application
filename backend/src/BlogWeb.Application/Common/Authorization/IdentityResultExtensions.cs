@@ -1,7 +1,7 @@
 using BlogWeb.Domain.Models;
 using Microsoft.AspNetCore.Identity;
 
-namespace BlogWeb.Infrastructure.Authorization
+namespace BlogWeb.Application.Common.Authorization
 {
     public static class IdentityResultExtensions
     {

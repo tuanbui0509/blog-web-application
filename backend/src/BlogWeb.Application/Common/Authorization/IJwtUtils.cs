@@ -1,7 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
-namespace BlogWeb.Infrastructure.Authorization
+namespace BlogWeb.Application.Common.Authorization
 {
     public interface IJwtUtils
     {

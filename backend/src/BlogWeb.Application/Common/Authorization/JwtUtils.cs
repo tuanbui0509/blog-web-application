@@ -4,7 +4,7 @@ using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
-namespace BlogWeb.Infrastructure.Authorization
+namespace BlogWeb.Application.Common.Authorization
 {
     public class JwtUtils : IJwtUtils
     {

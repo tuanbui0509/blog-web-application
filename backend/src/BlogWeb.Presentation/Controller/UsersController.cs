@@ -1,20 +1,24 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using BlogWeb.Infrastructure.ApplicationUser.Queries;
 using BlogWeb.Domain.Models;
 using BlogWeb.Domain.SignUp;
 using BlogWeb.Domain.Models.Authentication;
 using BlogWeb.Domain.Constants;
 using BlogWeb.Application.Interfaces;
+using BlogWeb.Application.Authentication.Commands.GetToken;
+using BlogWeb.Application.Authentication.Commands.Authentication;
+using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace BlogWeb.Presentation.Controller
 {
     [ApiController]
     [Route("api/v1/[controller]")]
-    public class UsersController : ApiControllerBase
+    public class UsersController : ControllerBase
     {
         private readonly IUserService _userService;
-
+        private IMediator _mediator;
+        protected IMediator Mediator => _mediator ??= HttpContext.RequestServices.GetService<IMediator>();
         public UsersController(IUserService userService)
         {
             _userService = userService;
@@ -27,9 +31,10 @@ namespace BlogWeb.Presentation.Controller
         //     var response = await _userService.Authenticate(model);
         //     return Ok(response);
         // }
-        public async Task<ActionResult<ServiceResult<AuthenticateResponse>>> Login(GetTokenQuery query, CancellationToken cancellationToken)
+        public async Task<ActionResult> Login(AuthenticationCommand query)
         {
-            return Ok(await Mediator.Send(query, cancellationToken));
+            var response = await Mediator.Send(query);
+            return Ok(response);
         }
 
         [HttpPost("[action]")]

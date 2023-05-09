@@ -1,16 +1,12 @@
-using System.Text;
-
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
 
-using BlogWeb.Api.DependencyInjection;
-using BlogWeb.Domain.Emails;
 using BlogWeb.Domain.Entities.Authentication;
 using BlogWeb.Domain.Helpers;
 using BlogWeb.Infrastructure.Persistence;
+using BlogWeb.Infrastructure;
+using BlogWeb.Application.Common.Authorization;
+using BlogWeb.Api.ConfigurationExtension;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
@@ -18,76 +14,17 @@ var services = builder.Services;
 var env = builder.Environment;
 
 // add all services
-services.AddApplication();
-//Add dbContext, here you can we are using In-memory database.For Entity Framework
-services.AddDbContext<ApplicationDbContext>(option =>
-{
-    option.UseSqlServer(builder.Configuration.GetConnectionString("WebBlogDb"), b => b.MigrationsAssembly("BlogWeb.Api"));
-});
-
+services.ConfigureInfraStructure(builder.Configuration);
+services.AddApplication(builder.Configuration);
 
 // Controller
 services.AddControllers();
 
-builder.Services.AddSwaggerGen(option =>
-{
-    option.SwaggerDoc("v1", new OpenApiInfo { Title = "Auth API", Version = "v1" });
-    option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        In = ParameterLocation.Header,
-        Description = "Please enter a valid token",
-        Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        BearerFormat = "JWT",
-        Scheme = "Bearer"
-    });
-    option.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type=ReferenceType.SecurityScheme,
-                    Id="Bearer"
-                }
-            },
-            new string[]{}
-        }
-    });
-});
-
 // configure strongly typed settings object
 services.AddEndpointsApiExplorer();
 
-//Add Email Configs
-var emailConfig = builder.Configuration.GetSection("EmailConfiguration").Get<EmailConfiguration>();
-services.AddSingleton(emailConfig);
-
-// Adding Authentication
-var secretKeyBytes = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]);
-services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(o =>
-{
-    o.SaveToken = true;
-    o.RequireHttpsMetadata = false;
-    o.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(secretKeyBytes),
-        ValidateIssuer = true,
-        ValidateAudience = true
-    };
-});
-
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 // global cors policy
 app.UseCors(x => x
     .AllowAnyOrigin()
@@ -98,7 +35,7 @@ app.UseCors(x => x
 app.UseMiddleware<ErrorHandlerMiddleware>();
 
 // custom jwt auth middleware
-// app.UseMiddleware<JwtMiddleware>();
+app.UseMiddleware<JwtMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {

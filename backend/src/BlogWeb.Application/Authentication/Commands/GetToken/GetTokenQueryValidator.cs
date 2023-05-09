@@ -1,7 +1,6 @@
-using BlogWeb.Infrastructure.ApplicationUser.Queries;
 using FluentValidation;
 
-namespace BlogWeb.Infrastructure.Handlers.ApplicationUser.Queries
+namespace BlogWeb.Application.Authentication.Commands.GetToken
 {
     public class GetTokenQueryValidator: AbstractValidator<GetTokenQuery>
     {

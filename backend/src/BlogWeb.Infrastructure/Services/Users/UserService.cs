@@ -3,7 +3,6 @@ using System.Security.Claims;
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using BlogWeb.Infrastructure.Authorization;
 using BlogWeb.Infrastructure.Persistence;
 using BlogWeb.Infrastructure.Services.Emails;
 
@@ -18,6 +17,7 @@ using BlogWeb.Domain.Constants;
 using BlogWeb.Domain.Entities.Authentication;
 using BlogWeb.Application.Interfaces;
 using AutoMapper;
+using BlogWeb.Application.Common.Authorization;
 
 namespace BlogWeb.Infrastructure.Services.Users
 {

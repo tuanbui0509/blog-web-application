@@ -1,7 +1,7 @@
 using BlogWeb.Application.Interfaces;
 using Microsoft.AspNetCore.Http;
 
-namespace BlogWeb.Infrastructure.Authorization
+namespace BlogWeb.Application.Common.Authorization
 {
     public class JwtMiddleware
     {
