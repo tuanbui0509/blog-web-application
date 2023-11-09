@@ -1,4 +1,4 @@
-using BlogWeb.Application.Models.Emails;
+using BlogWeb.Domain.Emails;
 using MailKit.Net.Smtp;
 using MimeKit;
 

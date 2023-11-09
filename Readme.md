@@ -9,6 +9,7 @@
 > Part 0: Create Clean Architecture for Asp.net
 - Setting up the project structure
 - First, create a new ASP.NET Core project and organize it into the following folders:
+    + Api: Handle configuration.
     + Domain: Contains the domain entities and interfaces.
     + Application: Houses the application services, DTOs, and interfaces.
     + Infrastructure: Contains the implementations of the interfaces defined in the Domain layer.
@@ -32,7 +33,8 @@
 - Seed Data
 - Auto mapping
 >  Part 2: Create API Authentication and Authorization and Roles
-
+    - Login => send OTP mail to confirm.
+    - Register => send link active to your mail. 
 > Part 3: Apply design pattern **Unit Of Work**, **Mediator** for web
 
 > Part 4: Apply Unit Test NUnit for web

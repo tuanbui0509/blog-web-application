@@ -3,58 +3,57 @@ using System.Security.Claims;
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-
-using BlogWeb.Application.Common.Exceptions;
-using BlogWeb.Application.Common.Helpers;
-using BlogWeb.Application.Common.Interfaces;
-using BlogWeb.Application.Common.Models;
-using BlogWeb.Application.Dto;
-using BlogWeb.Application.Entities.Authentication;
-using BlogWeb.Application.Models;
-using BlogWeb.Application.Models.Emails;
-using BlogWeb.Application.Models.SignUp;
-using BlogWeb.Infrastructure.Authorization;
-using BlogWeb.Infrastructure.Persistence;
 using BlogWeb.Infrastructure.Services.Emails;
 
-using MapsterMapper;
-using BlogWeb.Application.Common.Constants;
+using BlogWeb.Domain.Emails;
+using BlogWeb.Domain.Models.Authentication;
+using BlogWeb.Domain.Dto;
+using BlogWeb.Domain.Helpers;
+using BlogWeb.Domain.Exceptions;
+using BlogWeb.Domain.Models;
+using BlogWeb.Domain.SignUp;
+using BlogWeb.Domain.Constants;
+using BlogWeb.Domain.Entities.Authentication;
+using AutoMapper;
+using BlogWeb.Application.Common.Authorization;
+using BlogWeb.Application.Interfaces.Repositories;
+using BlogWeb.Application.Authentication.Commands.Register;
 
 namespace BlogWeb.Infrastructure.Services.Users
 {
     public class UserService : IUserService
     {
-        private ApplicationDbContext _context;
         private IJwtUtils _jwtUtils;
         private readonly UserManager<UserApplication> _userManager;
         private readonly SignInManager<UserApplication> _signInManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IEmailService _emailService;
         private readonly IMapper _mapper;
+        public IUnitOfWork _unitOfWork;
         public UserService(
-            ApplicationDbContext context
-            , IJwtUtils jwtUtils
+            IJwtUtils jwtUtils
             , UserManager<UserApplication> userManager
             , RoleManager<IdentityRole> roleManager
             , SignInManager<UserApplication> signInManager
             , IEmailService emailService
-            , IMapper mapper)
+            , IMapper mapper
+            , IUnitOfWork unitOfWork)
         {
-            _context = context;
             _jwtUtils = jwtUtils;
             _userManager = userManager;
             _roleManager = roleManager;
             _signInManager = signInManager;
             _emailService = emailService;
             _mapper = mapper;
+            _unitOfWork = unitOfWork;
         }
 
-        public async Task<Response> Authenticate(AuthenticateRequest loginModel)
+        public async Task<AuthenticateResponse> Authenticate(ApplicationUserDto loginModel)
         {
             try
             {
                 // var user = _context.Users.SingleOrDefault(x => x.Username == model.Username);
-                var user = await _userManager.FindByNameAsync(loginModel.Username);
+                var user = await _userManager.FindByNameAsync(loginModel.UserName);
                 // validate
                 if (user.TwoFactorEnabled)
                 {
@@ -62,10 +61,10 @@ namespace BlogWeb.Infrastructure.Services.Users
                     await _signInManager.PasswordSignInAsync(user, loginModel.Password, false, true);
                     var token = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
 
-                    var message = new Message(new string[] { user.Email! }, "OTP Confrimation", token);
+                    var message = new Message(new string[] { user.Email! }, "OTP Confirmation", token);
                     _emailService.SendEmail(message);
 
-                    return new Response { Status = "Success", Message = $"We have sent an OTP to your Email {user.Email}" };
+                    return new AuthenticateResponse { Status = "Success", Message = $"We have sent an OTP to your Email {user.Email}" };
                 }
 
                 if (user != null && await _userManager.CheckPasswordAsync(user, loginModel.Password))
@@ -88,15 +87,8 @@ namespace BlogWeb.Infrastructure.Services.Users
                         User = new ApplicationUserDto { UserName = user.UserName, Email = user.Email, Id = user.Id },
                         Token = new JwtSecurityTokenHandler().WriteToken(jwtToken)
                     };
-                    // return Ok(new
-                    // {
-                    //     token = new JwtSecurityTokenHandler().WriteToken(jwtToken),
-                    //     expiration = jwtToken.ValidTo
-                    // });
-                    //returning the token...
-
                 }
-                return new Response { Status = "Failure", Message = $"Username or password is incorrect" };
+                return new AuthenticateResponse { Status = "Failure", Message = $"Username or password is incorrect" };
             }
             catch (System.Exception)
             {
@@ -118,11 +110,17 @@ namespace BlogWeb.Infrastructure.Services.Users
 
         public async Task<ApplicationUserDto> CheckUserPassword(string email, string password)
         {
-            UserApplication user = await _userManager.Users.FirstOrDefaultAsync(u => u.Email == email);
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Email == email);
 
             if (user != null && await _userManager.CheckPasswordAsync(user, password))
             {
-                return _mapper.Map<ApplicationUserDto>(user);
+                return new ApplicationUserDto()
+                {
+                    UserName = user.UserName,
+                    Password = password,
+                    Email = email,
+                    Id = user.Id
+                };
             }
 
             return null;
@@ -167,14 +165,14 @@ namespace BlogWeb.Infrastructure.Services.Users
             return (result.ToApplicationResult(), user.Id);
         }
 
-        public async Task<Response> RegisterUser(RegisterUser registerUser)
+        public async Task<AuthenticateResponse> RegisterUser(RegisterCommand registerUser)
         {
             var role = Roles.User;
             //Check User Exist 
             var userExist = await _userManager.FindByEmailAsync(registerUser.Email);
             if (userExist != null)
             {
-                return new Response { Status = "Error", Message = "User already exists!" };
+                return new AuthenticateResponse { Status = "Error", Message = "User already exists!" };
             }
 
             //Add the User in the database
@@ -190,7 +188,7 @@ namespace BlogWeb.Infrastructure.Services.Users
                 var result = await _userManager.CreateAsync(user, registerUser.Password);
                 if (!result.Succeeded)
                 {
-                    return new Response { Status = "Error", Message = "User Failed to Create" };
+                    return new AuthenticateResponse { Status = "Error", Message = "User Failed to Create" };
                 }
                 //Add role to the user....
 
@@ -198,15 +196,21 @@ namespace BlogWeb.Infrastructure.Services.Users
 
                 //Add Token to Verify the email....
                 var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                var confirmationLink = await ConfirmEmail(token, user.Email);
-                var message = new Message(new string[] { user.Email! }, "Confirmation email link", confirmationLink.Message);
-                _emailService.SendEmail(message);
-                return new Response { Status = "Success", Message = $"User created & Email Sent to {user.Email} SuccessFully" };
+                // var confirmationLink = await ConfirmEmail(token, user.Email);
+                // var confirmationLink = Url.Action(nameof(ConfirmEmail), "Account", new { token, email = user.Email }, Request.Scheme);
 
+                // var message = new Message(new string[] { user.Email! }, "Confirmation email link", confirmationLink.Message);
+                // _emailService.SendEmail(message);
+                // return new Response { Status = "Success", Message = $"User created & Email Sent to {user.Email} SuccessFully" };
+                return new AuthenticateResponse
+                {
+                    User = new ApplicationUserDto { UserName = user.UserName, Email = user.Email, Id = user.Id },
+                    Token = token
+                };
             }
             else
             {
-                return new Response { Status = "Error", Message = "This Role Doesnot Exist." };
+                return new AuthenticateResponse { Status = "Error", Message = "This Role doesn't Exist." };
             }
         }
 
@@ -252,7 +256,7 @@ namespace BlogWeb.Infrastructure.Services.Users
                     return new Response { Status = "Success", Message = nameof(ConfirmEmail) };
                 }
             }
-            return new Response { Status = "Error", Message = "This User Doesnot exist!" };
+            return new Response { Status = "Error", Message = "This User doesn't exist!" };
         }
     }
 }

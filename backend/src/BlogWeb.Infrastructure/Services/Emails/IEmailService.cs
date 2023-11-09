@@ -1,4 +1,4 @@
-using BlogWeb.Application.Models.Emails;
+using BlogWeb.Domain.Emails;
 
 namespace BlogWeb.Infrastructure.Services.Emails
 {
