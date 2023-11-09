@@ -6,7 +6,7 @@ public class BaseEntity
 {
     [Key]
     [DatabaseGeneratedAttribute(DatabaseGeneratedOption.Identity)]
-    public int Id { get; set; }
+    public Guid Id { get; set; }
     public bool IsPublished { get; set; }
     public DateTime CreatedAt { get; set; }
     public string? CreatedBy { get; set; }

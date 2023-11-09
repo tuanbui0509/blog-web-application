@@ -1,4 +1,5 @@
 using BlogWeb.Domain.Interfaces;
+using BlogWeb.Domain.Interfaces.Repositories;
 using BlogWeb.Domain.Models.Authentication;
 
 namespace BlogWeb.Application.Authentication.Commands.GetToken

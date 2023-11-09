@@ -1,3 +1,4 @@
+using BlogWeb.Application.Interfaces.Repository;
 using BlogWeb.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;

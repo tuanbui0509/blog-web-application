@@ -1,6 +1,8 @@
 using BlogWeb.Application.Authentication.Commands.Authentication;
 using BlogWeb.Application.Common.Authorization;
 using BlogWeb.Application.Interfaces;
+using BlogWeb.Application.Interfaces.Repositories;
+using BlogWeb.Domain.Helpers;
 using BlogWeb.Domain.Models.Authentication;
 using MediatR;
 
@@ -19,18 +21,7 @@ namespace BlogWeb.Application.Authentication.Handlers
         public async Task<AuthenticateResponse> Handle(AuthenticationCommand request, CancellationToken cancellationToken)
         {
             var user = await _userService.CheckUserPassword(request.Email, request.Password);
-
-            if (user == null)
-                return new AuthenticateResponse()
-                {
-                    Message = "OMG"
-                };
-
-            return new AuthenticateResponse
-            {
-                User = user,
-                Token = _jwtUtils.GenerateJwtToken(user.Id)
-            };
+            return (AuthenticateResponse)await _userService.Authenticate(user);
         }
     }
 }

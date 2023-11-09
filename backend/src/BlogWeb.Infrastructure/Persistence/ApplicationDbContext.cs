@@ -1,4 +1,4 @@
-using BlogWeb.Application.Interfaces;
+using BlogWeb.Application.Interfaces.Repositories;
 using BlogWeb.Domain.Entities;
 using BlogWeb.Domain.Entities.Authentication;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;

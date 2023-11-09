@@ -1,7 +1,7 @@
 using BlogWeb.Application.Authentication.Commands.GetToken;
 using BlogWeb.Application.Common.Authorization;
-using BlogWeb.Application.Interfaces;
-using BlogWeb.Domain.Interfaces;
+using BlogWeb.Application.Interfaces.Repositories;
+using BlogWeb.Domain.Interfaces.Repositories;
 using BlogWeb.Domain.Models;
 using BlogWeb.Domain.Models.Authentication;
 

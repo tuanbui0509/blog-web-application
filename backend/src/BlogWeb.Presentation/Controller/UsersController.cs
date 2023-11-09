@@ -1,47 +1,39 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using BlogWeb.Domain.Models;
 using BlogWeb.Domain.SignUp;
-using BlogWeb.Domain.Models.Authentication;
 using BlogWeb.Domain.Constants;
-using BlogWeb.Application.Interfaces;
-using BlogWeb.Application.Authentication.Commands.GetToken;
 using BlogWeb.Application.Authentication.Commands.Authentication;
-using MediatR;
-using Microsoft.Extensions.DependencyInjection;
+using BlogWeb.Application.Interfaces.Repositories;
+using BlogWeb.Domain.Models;
+using BlogWeb.Domain.Models.Authentication;
+using BlogWeb.Application.Authentication.Commands.Register;
 
 namespace BlogWeb.Presentation.Controller
 {
     [ApiController]
     [Route("api/v1/[controller]")]
-    public class UsersController : ControllerBase
+    public class UsersController : ApiControllerBase
     {
         private readonly IUserService _userService;
-        private IMediator _mediator;
-        protected IMediator Mediator => _mediator ??= HttpContext.RequestServices.GetService<IMediator>();
-        public UsersController(IUserService userService)
-        {
-            _userService = userService;
-        }
+
+        public UsersController(IUserService userService) => _userService = userService;
 
         [AllowAnonymous]
         [HttpPost("[action]")]
-        // public async Task<IActionResult> Login(AuthenticateRequest model)
-        // {
-        //     var response = await _userService.Authenticate(model);
-        //     return Ok(response);
-        // }
-        public async Task<ActionResult> Login(AuthenticationCommand query)
+        public async Task<ActionResult<ServiceResult<AuthenticateResponse>>> Login(AuthenticationCommand query,CancellationToken cancellationToken)
         {
-            var response = await Mediator.Send(query);
-            return Ok(response);
+            return Ok(await Mediator.Send(query, cancellationToken));
         }
 
         [HttpPost("[action]")]
-        public async Task<IActionResult> Register([FromBody] RegisterUser registerUser)
+        public async Task<ActionResult<ServiceResult<AuthenticateResponse>>> Register([FromBody] RegisterCommand registerUser)
         {
-            var response = await _userService.RegisterUser(registerUser);
-            return Ok(response);
+            var response = await Mediator.Send(registerUser);
+            var user = response.Data.User;
+            var token = response.Data.Token;
+            var confirmationLink = Url.Action(nameof(ConfirmEmail), "Account", new { token, email = user.Email }, Request.Scheme);
+            
+            return Ok("Thank you for confirming your email.");
         }
 
         [HttpPost("LoginWithOTP")]
@@ -58,24 +50,11 @@ namespace BlogWeb.Presentation.Controller
             return new List<string> { "Ahmed", "Ali", "hahaha", "huhuhu" };
         }
 
-        // [Authorize(Roles = "Admin")]
-        // [HttpGet]
-        // public IActionResult GetAll()
-        // {
-        //     var users = _userService.GetAll();
-        //     return Ok(users);
-        // }
+        public async Task<IActionResult> ConfirmEmail(string token, string email)
+        {
+            return Ok();
+        }
 
-        // [HttpGet("{id:int}")]
-        // public IActionResult GetById(int id)
-        // {
-        //     // only admins can access other user records
-        //     var currentUser = (User)HttpContext.Items["User"];
-        //     if (id != currentUser.Id && currentUser.Role != Role.Admin)
-        //         return Unauthorized(new { message = "Unauthorized" });
 
-        //     var user = _userService.GetById(id);
-        //     return Ok(user);
-        // }
     }
 }

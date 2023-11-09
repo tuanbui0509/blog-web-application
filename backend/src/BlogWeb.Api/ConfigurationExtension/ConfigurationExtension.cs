@@ -1,26 +1,29 @@
 using System.Reflection;
+using System.Text;
 
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
-using BlogWeb.Application.Interfaces;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+
+using BlogWeb.Application.Common.Authorization;
+using BlogWeb.Domain.Emails;
 using BlogWeb.Domain.Entities.Authentication;
 using BlogWeb.Infrastructure.Persistence;
 using BlogWeb.Infrastructure.Services.Emails;
 using BlogWeb.Infrastructure.Services.Users;
 
 using FluentValidation;
-using BlogWeb.Application.Common.Authorization;
-using BlogWeb.Domain.Emails;
-using Microsoft.OpenApi.Models;
-using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
+
 //using MediatR;
-using BlogWeb.Application.Behaviors;
-using MediatR;
-using Microsoft.Extensions.DependencyInjection;
-using BlogWeb.Application.Authentication.Handlers;
-using BlogWeb.Domain.Models.Authentication;
 using BlogWeb.Application.Authentication.Commands.Authentication;
+using BlogWeb.Application.Authentication.Handlers;
+using BlogWeb.Application.Behaviors;
+using BlogWeb.Application.Interfaces.Repositories;
+using BlogWeb.Domain.Models.Authentication;
+using BlogWeb.Infrastructure.UnitOfWork;
+
+using MediatR;
 
 namespace BlogWeb.Api.ConfigurationExtension
 {
@@ -30,6 +33,8 @@ namespace BlogWeb.Api.ConfigurationExtension
         {
 
             // configure DI for application services
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IJwtUtils, JwtUtils>();
             services.AddScoped<IEmailService, EmailService>();
@@ -51,11 +56,13 @@ namespace BlogWeb.Api.ConfigurationExtension
             services.AddSingleton(emailConfig);
 
             // Mediator
-            services.AddMediatR(_ => _.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
-            //services.AddMediatR(typeof(IMediator).Assembly);
+            services.AddMediatR(cfg =>
+            {
+                cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
+                cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+            });
 
             services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
-            //services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
             // services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AuthorizationBehavior<,>));
             // services.AddTransient(typeof(IPipelineBehavior<,>), typeof(PerformanceBehavior<,>));
             // services.AddTransient(typeof(IPipelineBehavior<,>), typeof(UnhandledExceptionBehaviour<,>));
@@ -112,7 +119,7 @@ namespace BlogWeb.Api.ConfigurationExtension
             });
             // Auto mapper
             services.AddAutoMapper(Assembly.GetExecutingAssembly());
-
+            services.AddAutoMapper(typeof(Program));
             return services;
         }
     }

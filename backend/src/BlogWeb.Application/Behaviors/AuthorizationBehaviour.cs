@@ -1,5 +1,6 @@
 using System.Reflection;
 using BlogWeb.Application.Interfaces;
+using BlogWeb.Application.Interfaces.Repositories;
 using BlogWeb.Domain.Exceptions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

@@ -1,4 +1,4 @@
-using BlogWeb.Application.Interfaces;
+using BlogWeb.Application.Interfaces.Repositories;
 using Microsoft.AspNetCore.Http;
 
 namespace BlogWeb.Application.Common.Authorization
